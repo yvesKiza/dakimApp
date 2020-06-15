@@ -1,4 +1,3 @@
-import 'package:emergency/models/contact.dart';
 
 class User{
   String id;

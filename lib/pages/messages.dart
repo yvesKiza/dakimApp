@@ -6,7 +6,7 @@ class Messages extends StatelessWidget {
   
  
   Future<void> _refreshMessages(BuildContext context) async {
-    await Provider.of<MessageProvider>(context, listen: false)
+    Provider.of<MessageProvider>(context, listen: false)
         .fetchAuth();
   }
 

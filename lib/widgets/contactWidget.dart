@@ -7,33 +7,27 @@ class UserContactItem extends StatelessWidget {
   final String id;
   final String names;
   final String phone;
+  final String relationship;
 
-  UserContactItem(this.id, this.names, this.phone);
+  UserContactItem(this.id, this.names, this.phone,this.relationship);
 
   @override
   Widget build(BuildContext context) {
-    final scaffold = Scaffold.of(context);
-    return ListTile(
-      title: Text(names),
-      leading: CircleAvatar(
-        child: new Text(names[0]),
-      ),
-       subtitle: Text(phone),
-      trailing: Container(
-        width: 100,
-        child: Row(
-          children: <Widget>[
-            IconButton(
-              icon: Icon(Icons.edit),
-              onPressed: () {
-                Navigator.of(context)
-                    .pushNamed(EditContactScreen.routeName, arguments: id);
-              },
-              color: Theme.of(context).primaryColor,
-            ),
-          
-          ],
+    return Card(
+      color:  Color(0xFF111328),
+      child: ListTile(
+        title: Text(names),
+        leading: CircleAvatar(
+          child: new Text(names[0]),
+          backgroundColor: Colors.white,
         ),
+         subtitle: Text(phone),
+         onTap:  () {
+                  Navigator.of(context)
+                      .pushNamed(EditContactScreen.routeName, arguments: id);
+                },
+          
+        trailing: Text(relationship),
       ),
     );
   }

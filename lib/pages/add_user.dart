@@ -3,8 +3,6 @@ import 'package:emergency/models/contact.dart';
 import 'package:emergency/models/user.dart';
 import 'package:emergency/pages/add_contact.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../providers/UserProvider.dart';
 
 
 class AddUserScreen extends StatefulWidget {
@@ -25,7 +23,6 @@ class _AddUserScreenState extends State<AddUserScreen> {
     phoneNumber: '',
   );
   
-  var _isInit = true;
   var _isLoading = false;
 
   @override
@@ -39,7 +36,6 @@ class _AddUserScreenState extends State<AddUserScreen> {
    
     
     
-    _isInit = false;
     super.didChangeDependencies();
   }
 
@@ -78,7 +74,7 @@ class _AddUserScreenState extends State<AddUserScreen> {
         title: Text('New User'),
         actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.save),
+            icon: Icon(Icons.done),
             onPressed: _saveForm,
           ),
         ],

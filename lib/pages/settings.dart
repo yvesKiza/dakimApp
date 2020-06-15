@@ -46,6 +46,7 @@ class _SettingsState extends State<Settings> {
         title: new Center(child: new Text('Settings',textAlign: TextAlign.center)),
       ),
       body:      SettingsList(
+        
         sections: [
           SettingsSection(
             title: 'Account',

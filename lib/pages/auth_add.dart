@@ -131,6 +131,7 @@ Navigator.of(context).popUntil((route) => route.isFirst);
                     if (value.isEmpty || !value.contains('@')) {
                       return 'Invalid email!';
                     }
+                    return null;
                   },
                   onSaved: (value) {
                     _authData['email'] = value;
@@ -144,6 +145,7 @@ Navigator.of(context).popUntil((route) => route.isFirst);
                     if (value.isEmpty || value.length < 5) {
                       return 'Password is too short!';
                     }
+                     return null;
                   },
                   onSaved: (value) {
                     _authData['password'] = value;
@@ -158,6 +160,7 @@ Navigator.of(context).popUntil((route) => route.isFirst);
                             if (value != _passwordController.text) {
                               return 'Passwords do not match!';
                             }
+                             return null;
                           }
                       
                   ),

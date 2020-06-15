@@ -2,6 +2,7 @@ import 'package:emergency/models/contact.dart';
 import 'package:emergency/models/user.dart';
 import 'package:flutter/material.dart';
 import '../pages/auth_add.dart';
+import 'package:fluttercontactpicker/fluttercontactpicker.dart' as c;
 
 
 class AddContactScreen extends StatefulWidget {
@@ -16,6 +17,9 @@ List<Contact> _contacts;
 String _condition;
 
 class _AddContactScreenState extends State<AddContactScreen> {
+   c.PhoneContact _phoneContact;
+    final _phoneController= TextEditingController();
+     final _name= TextEditingController();
   final _namesFocusNode = FocusNode();
   final _phoneFocusNode = FocusNode();
  
@@ -29,7 +33,6 @@ class _AddContactScreenState extends State<AddContactScreen> {
     phoneNumber: '',
   );
   
-  var _isInit = true;
   var _isLoading = false;
 
   @override
@@ -46,7 +49,6 @@ class _AddContactScreenState extends State<AddContactScreen> {
     _user=map[0].values.first as User;
     _contacts=map[2].values.first as List<Contact>;
     _condition=map[1].values.first as String;
-    _isInit = false;
     super.didChangeDependencies();
   }
 
@@ -60,7 +62,13 @@ class _AddContactScreenState extends State<AddContactScreen> {
     super.dispose();
   }
 
+   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   
+  void _showScaffold(String message) {
+    _scaffoldKey.currentState.showSnackBar(SnackBar(
+      content: Text(message),
+    ));
+  }
 
   Future<void> _saveForm() async {
     final isValid = _form.currentState.validate();
@@ -105,11 +113,20 @@ class _AddContactScreenState extends State<AddContactScreen> {
     //   //   Navigator.of(context).pop();
     //   // }
     // }
+       final prodIndex = _contacts.indexWhere((prod) => prod.phoneNumber.trim() == _editedProduct.phoneNumber.trim());
+      if (prodIndex >= 0) {
+        _showScaffold("contact exists");
+         setState(() {
+      _isLoading = false;
+    });
+        return;
+      }
     if(_contacts.length==0){
     _contacts.add(_editedProduct);
     Navigator.of(context)
                     .pushNamed(AddContactScreen.routeName, arguments: [{'user': _user}, {'condition': 'Second  Contact'},{'contacts':_contacts}]);
     }else if(_contacts.length==1){
+
        _contacts.add(_editedProduct);
        Navigator.of(context)
                     .pushNamed(AddContactScreen.routeName, arguments: [{'user': _user}, {'condition': 'Third  Contact'},{'contacts':_contacts}]);
@@ -130,11 +147,12 @@ class _AddContactScreenState extends State<AddContactScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text(_condition),
         actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.save),
+            icon: Icon(Icons.done),
             onPressed: _saveForm,
           ),
         ],
@@ -157,9 +175,10 @@ class _AddContactScreenState extends State<AddContactScreen> {
        
         child: Text("Setting a emergency contact", style: TextStyle(fontSize: 20)),
       ),
-                    TextFormField(
-                    
+               TextFormField(
+                     
                       decoration: InputDecoration(labelText: 'names'),
+                      controller: _name,
                       textInputAction: TextInputAction.next,
                       onFieldSubmitted: (_) {
                         FocusScope.of(context).requestFocus(_phoneFocusNode);
@@ -179,23 +198,25 @@ class _AddContactScreenState extends State<AddContactScreen> {
                             );
                       },
                     ),
-                    TextFormField(
-                      
+                    Row(children: <Widget>[
+                      Expanded(child:TextFormField(
+                  
                       decoration: InputDecoration(labelText: 'phone'),
                       textInputAction: TextInputAction.next,
-                      keyboardType: TextInputType.number,
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
                       focusNode: _phoneFocusNode,
+
                       onFieldSubmitted: (_) {
                         FocusScope.of(context)
                             .requestFocus(_relationshipNode);
                       },
                       validator: (value) {
-                        String patttern = r'(^(?:[+0]9)?[0-9]{10,12}$)';
-                        RegExp regExp = new RegExp(patttern); 
+                       
                         if (value.length==0) {
                           return 'Please enter a phone Number.';
                         }
-                        if (!regExp.hasMatch(value)) {
+                        if (value.length<10) {
                           return 'Please enter a valid number.';
                         }
                         
@@ -205,13 +226,30 @@ class _AddContactScreenState extends State<AddContactScreen> {
                        
                          _editedProduct = Contact(
                             names: _editedProduct.names,
-                            phoneNumber: value,
+                            phoneNumber: value.trim(),
                             relationship: _editedProduct.relationship,
                               id: _editedProduct.id,
                             );
                          
                       }
                     ),
+                     ),
+                       IconButton(
+          icon: Icon(Icons.photo_filter),
+        
+          onPressed: () async {
+           final c.PhoneContact contact =
+            await c.FlutterContactPicker.pickPhoneContact();
+            
+            setState(() {
+              _phoneContact = contact;
+              _name.text=_phoneContact.fullName;
+              _phoneController.text=_phoneContact.phoneNumber.number;
+
+            });
+          },
+        ),
+                    ],),
                     TextFormField(
                       
                       decoration: InputDecoration(labelText: 'relationship'),
@@ -222,8 +260,8 @@ class _AddContactScreenState extends State<AddContactScreen> {
                         if (value.isEmpty) {
                           return 'Please enter a realationship.';
                         }
-                        if (value.length < 4) {
-                          return 'Should be at least 4 characters long.';
+                        if (value.trim().length < 2) {
+                          return 'Should be at least 2 characters long.';
                         }
                         return null;
                       },

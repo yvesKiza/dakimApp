@@ -45,8 +45,9 @@ class Contacts extends StatelessWidget {
                                     children: [
                                       UserContactItem(data.contacts[i].id,
                                       data.contacts[i].names,
-                                      data.contacts[i].phoneNumber),
-                                       Divider(),
+                                      data.contacts[i].phoneNumber,
+                                      data.contacts[i].relationship),
+                                   
                                         ],
                                   ),
                             ),

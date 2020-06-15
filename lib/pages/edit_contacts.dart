@@ -1,5 +1,6 @@
 import 'package:emergency/models/contact.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttercontactpicker/fluttercontactpicker.dart' as c;
 import 'package:provider/provider.dart';
 import '../providers/contactProvider.dart';
 
@@ -13,11 +14,23 @@ class EditContactScreen extends StatefulWidget {
 }
 
 class _EditContactScreenState extends State<EditContactScreen> {
+    c.PhoneContact _phoneContact;
+    final _phoneController= TextEditingController();
+     final _name= TextEditingController();
+    
   final _namesFocusNode = FocusNode();
   final _phoneFocusNode = FocusNode();
  
   final _relationshipNode = FocusNode();
   final _form = GlobalKey<FormState>();
+  
+     final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+  
+  void _showScaffold(String message) {
+    _scaffoldKey.currentState.showSnackBar(SnackBar(
+      content: Text(message),
+    ));
+  }
   var _editedProduct = Contact(
     id: null,
     userID: '',
@@ -56,6 +69,8 @@ class _EditContactScreenState extends State<EditContactScreen> {
           
          
         };
+        _phoneController.text=_editedProduct.phoneNumber;
+        _name.text=_editedProduct.names;
         
       }
     }
@@ -85,11 +100,26 @@ class _EditContactScreenState extends State<EditContactScreen> {
       _isLoading = true;
     });
   
-    print(_editedProduct.id);
+  
     if (_editedProduct.id != null) {
-      
+      try{
       await Provider.of<ContactProvider>(context, listen: false)
           .updateContact( _editedProduct,_editedProduct.id,);
+                
+     }on Exception {
+       _showScaffold("contact exists");
+       setState(() {
+      _isLoading = false;
+    });
+    return;
+       
+     }catch (error) {
+_showScaffold("contact exists");
+setState(() {
+      _isLoading = false;
+    });
+    return;
+}
     } else {
       try {
         await Provider.of<ContactProvider>(context, listen: false)
@@ -128,11 +158,14 @@ class _EditContactScreenState extends State<EditContactScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+          key: _scaffoldKey,
       appBar: AppBar(
+        
         title: Text('Edit Contact'),
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.save),
+
             onPressed: _saveForm,
           ),
         ],
@@ -149,8 +182,9 @@ class _EditContactScreenState extends State<EditContactScreen> {
                   children: <Widget>[
                     
                     TextFormField(
-                      initialValue: _initValues['names'],
+                     
                       decoration: InputDecoration(labelText: 'names'),
+                      controller: _name,
                       textInputAction: TextInputAction.next,
                       onFieldSubmitted: (_) {
                         FocusScope.of(context).requestFocus(_phoneFocusNode);
@@ -170,23 +204,25 @@ class _EditContactScreenState extends State<EditContactScreen> {
                             );
                       },
                     ),
-                    TextFormField(
-                      initialValue: _initValues['phoneNumber'],
+                    Row(children: <Widget>[
+                      Expanded(child:TextFormField(
+                  
                       decoration: InputDecoration(labelText: 'phone'),
                       textInputAction: TextInputAction.next,
-                      keyboardType: TextInputType.number,
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
                       focusNode: _phoneFocusNode,
+
                       onFieldSubmitted: (_) {
                         FocusScope.of(context)
                             .requestFocus(_relationshipNode);
                       },
                       validator: (value) {
-                        String patttern = r'(^(?:[+0]9)?[0-9]{10,12}$)';
-                        RegExp regExp = new RegExp(patttern); 
-                        if (value.length==0) {
+                        
+                        if (value.trim().length==0) {
                           return 'Please enter a phone Number.';
                         }
-                        if (!regExp.hasMatch(value)) {
+                        if (value.trim().length<10) {
                           return 'Please enter a valid number.';
                         }
                         
@@ -196,25 +232,43 @@ class _EditContactScreenState extends State<EditContactScreen> {
                        
                          _editedProduct = Contact(
                             names: _editedProduct.names,
-                            phoneNumber: value,
+                            phoneNumber: value.trim(),
                             relationship: _editedProduct.relationship,
                               id: _editedProduct.id,
                             );
                          
                       }
                     ),
+                     ),
+                       IconButton(
+          icon: Icon(Icons.photo_filter),
+        
+          onPressed: () async {
+           final c.PhoneContact contact =
+            await c.FlutterContactPicker.pickPhoneContact();
+            
+            setState(() {
+              _phoneContact = contact;
+              _name.text=_phoneContact.fullName;
+              _phoneController.text=_phoneContact.phoneNumber.number;
+
+            });
+          },
+        ),
+                    ],),
+                    
                     TextFormField(
                       initialValue: _initValues['relationship'],
                       decoration: InputDecoration(labelText: 'relationship'),
-                      maxLines: 3,
+                    
                       keyboardType: TextInputType.multiline,
                       focusNode: _relationshipNode,
                       validator: (value) {
                         if (value.isEmpty) {
                           return 'Please enter a realationship.';
                         }
-                        if (value.length < 4) {
-                          return 'Should be at least 4 characters long.';
+                        if (value.trim().length < 2) {
+                          return 'Should be at least 2 characters long.';
                         }
                         return null;
                       },

@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import '../models/user.dart';
 import '../models/contact.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 
 
@@ -22,11 +23,17 @@ class AuthService with ChangeNotifier {
      if(_user!=null){
        return _user.uid;
      }
-     else null;
+     else  return null;
    }
 
 
   Future loginWithEmail({@required String email,@required String password}) async {
+    Map<Permission, PermissionStatus> statuses = await [
+  Permission.location,
+  Permission.phone,
+  Permission.sms,
+
+].request();
     try {
      
      var res= await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
@@ -62,6 +69,25 @@ class AuthService with ChangeNotifier {
     
     }
   }
+   Future<bool> tryAutoLogin() async {
+     
+      final FirebaseUser user = await _firebaseAuth.currentUser();
+      user.getIdToken(refresh: true).then((value) {
+        print("yesssssssss");
+           return true;
+  })
+  .catchError((e){
+    print("nooooooooooooooooooooooooooooooooooooooooo");
+    return false;
+  });
+      if(user==null){
+        return false;
+      }
+        _user=user;
+      notifyListeners();
+
+    return true;
+  }
 
   Future signUpWithEmail({
     @required String email,
@@ -76,6 +102,7 @@ class AuthService with ChangeNotifier {
         email: email,
         password: password,
       );
+      
     
       _user=authResult.user;
      await  UserProvider(_user.uid).addUser(user);
